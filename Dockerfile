@@ -1,34 +1,15 @@
-FROM alpine:edge
+FROM php:7-alpine
 
-RUN apk --update add curl \ 
-	php7 \
-	php7-bcmath \
-	php7-ctype \
-	php7-curl \
-	php7-dom \
-	php7-iconv \
-	php7-json \
-	php7-mbstring \
-	php7-mcrypt \
-	php7-openssl \
-	php7-pdo \
-	php7-phar \
-	php7-session \
-	php7-xml --repository http://nl.alpinelinux.org/alpine/edge/testing/ && rm /var/cache/apk/*
-
-RUN ln -s /usr/bin/php7 /usr/bin/php
-
+RUN apk add --no-cache libmcrypt-dev freetype-dev libpng-dev libjpeg-turbo-dev freetype libpng libjpeg-turbo \
+    && docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-png-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install bcmath gd mbstring mcrypt mysqli pdo pdo_mysql opcache tokenizer zip \
+    && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
+  
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer 
-
-RUN mkdir -p /var/www
 
 WORKDIR /var/www
 
-VOLUME /var/www
-
 RUN composer self-update
-
-CMD ["bash"]
 
 ENTRYPOINT ["composer"]
 
